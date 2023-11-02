@@ -1,4 +1,8 @@
 #!/usr/bin/env python3
+"""
+Module to obfuscate log messages.
+"""
+
 import re
 
 def filter_datum(fields, redaction, message, separator):
@@ -14,13 +18,5 @@ def filter_datum(fields, redaction, message, separator):
     Returns:
         str: Obfuscated log message.
     """
-    pattern = fr'(?<={separator}|^)({"|".join(re.escape(field) for field in fields)})(?={separator}|$)'
+    pattern = fr'(?<=^|{re.escape(separator)})(?:(?={re.escape(separator)})|({"|".join(re.escape(field) for field in fields)}))[^{re.escape(separator)}]*'
     return re.sub(pattern, redaction, message)
-
-# Example usage:
-fields_to_obfuscate = ["password", "credit_card"]
-log_message = "User johndoe logged in with password 12345 and paid with credit_card 1234-5678-9012-3456."
-separator_char = " "
-
-obfuscated_message = filter_datum(fields_to_obfuscate, "REDACTED", log_message, separator_char)
-print(obfuscated_message)
