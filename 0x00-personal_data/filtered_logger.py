@@ -5,8 +5,17 @@ Module to obfuscate log messages.
 
 import re
 
-def filter_datum(fields, redaction, message, separator):
-    """
+patterns = {
+    'extract': lambda x, y: r'(?P<field>{})=[^{}]*'.format('|'.join(x), y),
+    'replace': lambda x: r'\g<field>={}'.format(x),
+}
+PII_FIELDS = ("name", "email", "phone", "ssn", "password")
+
+
+def filter_datum(
+        fields: List[str], redaction: str, message: str, separator: str,
+        ) -> str:
+       """
     Obfuscate log message by replacing specified fields with redaction.
 
     Args:
@@ -18,5 +27,5 @@ def filter_datum(fields, redaction, message, separator):
     Returns:
         str: Obfuscated log message.
     """
-    pattern = fr'(?<=^|{re.escape(separator)})(?:(?={re.escape(separator)})|({"|".join(re.escape(field) for field in fields)}))[^{re.escape(separator)}]*'
-    return re.sub(pattern, redaction, message)
+    extract, replace = (patterns["extract"], patterns["replace"])
+    return re.sub(extract(fields, separator), replace(redaction), message)
